@@ -3,6 +3,10 @@ const W = 1280, H = 720;
 const OR = 0xd4a640, OR_T = '#e8c46a', ROUGE = 0x8a1010, SOMBRE = 0x120808;
 const FONT = 'Georgia, "Times New Roman", serif';
 const SAVE_KEY = 'abime-apocalypse-v1';
+// Sprites de Créa (assets/ennemis/<clé>.webp) : boîte d'affichage max [largeur, hauteur]. Sans entrée = dessin provisoire.
+const SPRITES = { sauterelle: [135, 160], demon: [135, 170], cultiste: [135, 165], fauxProphete: [125, 190],
+  abaddon: [240, 240], cavalierPale: [240, 250], bete: [240, 245] };
+const slotW = u => (DATA.ENEMIES[u.id].boss ? 245 : 135);
 
 let SAVE = load();
 function load() {
@@ -88,6 +92,7 @@ class Boot extends Phaser.Scene {
     txt(this, W / 2, H / 2, 'Chargement…', 28).setOrigin(0.5);
     DATA.HERO_ORDER.forEach(id => this.load.image('h_' + id, `assets/${id}.webp`));
     this.load.image('fond', 'assets/fond-heros.webp');
+    Object.keys(SPRITES).forEach(k => this.load.image('s_' + k, `assets/ennemis/${k}.webp`));
   }
   create() {
     Object.keys(DATA.ENEMIES).forEach(k => { const g = this.make.graphics({ add: false }); drawEnemy(g, k); g.generateTexture('e_' + k, 160, 200); g.destroy(); });
@@ -159,7 +164,7 @@ class Hameau extends Phaser.Scene {
   }
 }
 
-const HERO_X = p => 560 - (p - 1) * 130, ENEMY_X = p => 730 + (p - 1) * 130, BASE_Y = 440;
+const HERO_X = p => 560 - (p - 1) * 130, BASE_Y = 440;
 const STATUS = u => [u.st.bleed.length && 'Saigne', u.st.burn.length && 'Brûle', u.st.stun && 'Étourdi', u.st.mark && 'Marqué',
   u.st.curse && 'Maudit', u.st.guard && 'Protégé', u.st.buff && 'Vision', LOGIC.crisis(u) && 'CRISE'].filter(Boolean).join(' · ');
 
@@ -196,6 +201,12 @@ class Donjon extends Phaser.Scene {
     });
   }
   // ----- affichage des unités -----
+  unitX(u) {
+    if (u.side === 'hero') return HERO_X(u.pos);
+    let x = 665;
+    for (const e of LOGIC.alive(this.combat.enemies).sort((a, b) => a.pos - b.pos)) { if (e === u) return x + slotW(e) / 2; x += slotW(e); }
+    return x + slotW(u) / 2;
+  }
   unitList() { return this.heroes.concat(this.combat ? this.combat.enemies : []); }
   refreshUnits() {
     const list = this.unitList();
@@ -203,7 +214,7 @@ class Donjon extends Phaser.Scene {
     list.forEach(u => {
       let v = this.views.get(u.uid);
       if (!v) v = this.makeView(u);
-      const x = u.side === 'hero' ? HERO_X(u.pos) : ENEMY_X(u.pos);
+      const x = this.unitX(u);
       if (v.x !== x) this.tweens.add({ targets: v, x, duration: 300 });
       v.hpBar.width = 100 * Math.max(0, u.hp) / u.maxHp;
       v.hpT.setText(`${Math.max(0, u.hp)}/${u.maxHp}`);
@@ -214,11 +225,15 @@ class Donjon extends Phaser.Scene {
     });
   }
   makeView(u) {
-    const v = this.add.container(u.side === 'hero' ? HERO_X(u.pos) : ENEMY_X(u.pos), BASE_Y);
-    const ring = this.add.ellipse(0, 0, 120, 30).setStrokeStyle(3, 0xffe08a).setVisible(false);
+    const v = this.add.container(this.unitX(u), BASE_Y);
+    const ring = this.add.ellipse(0, 0, u.side === 'enemy' && DATA.ENEMIES[u.id].boss ? 200 : 120, 30).setStrokeStyle(3, 0xffe08a).setVisible(false);
     let sprite;
     if (u.side === 'hero') sprite = this.add.image(0, 0, 'h_' + u.id).setOrigin(0.5, 1).setScale(0.6);
-    else { const b = DATA.ENEMIES[u.id]; sprite = this.add.image(0, 0, 'e_' + u.id).setOrigin(0.5, 1).setScale(b.boss ? 1.1 : 0.85); }
+    else if (SPRITES[u.id]) {
+      const [bw, bh] = SPRITES[u.id];
+      sprite = this.add.image(0, 0, 's_' + u.id).setOrigin(0.5, 1);
+      sprite.setScale(Math.min(bw / sprite.width, bh / sprite.height));
+    } else { const b = DATA.ENEMIES[u.id]; sprite = this.add.image(0, 0, 'e_' + u.id).setOrigin(0.5, 1).setScale(b.boss ? 1.1 : 0.85); }
     const top = -sprite.displayHeight;
     const name = txt(this, 0, top - 22, u.name, 14, u.side === 'hero' ? OR_T : '#ff9a8a', { align: 'center', wrap: 140 }).setOrigin(0.5, 1);
     const arrow = this.add.triangle(0, top - 50 - (name.height - 18), -10, -14, 10, -14, 0, 0, 0xffe08a).setVisible(false);
@@ -234,7 +249,7 @@ class Donjon extends Phaser.Scene {
     const stat = txt(this, 0, 36, '', 13, '#ffcc66', { align: 'center' }).setOrigin(0.5, 0);
     v.add(stat);
     Object.assign(v, { ring, sprite, arrow, hpBar, hpT, stat });
-    const zone = this.add.rectangle(0, top / 2, 120, -top + 40, 0x000000, 0.001).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.clickUnit(u));
+    const zone = this.add.rectangle(0, top / 2, Math.max(120, sprite.displayWidth * 0.8), -top + 40, 0x000000, 0.001).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.clickUnit(u));
     v.add(zone);
     this.views.set(u.uid, v);
     return v;
@@ -248,7 +263,11 @@ class Donjon extends Phaser.Scene {
       if (!style) return;
       const t = txt(this, v.x, BASE_Y - 200 - i * 4 + (f.type === 'stress' || f.type === 'calme' ? 26 : 0), style[1], 22, style[0], { stroke: 4 }).setOrigin(0.5);
       this.tweens.add({ targets: t, y: t.y - 50, alpha: 0, duration: 1200, onComplete: () => t.destroy() });
-      if (['dmg', 'crit', 'saignement', 'brûlure'].includes(f.type)) this.tweens.add({ targets: v.sprite, x: 8, duration: 50, yoyo: true, repeat: 2, onComplete: () => { v.sprite.x = 0; } });
+      if (['dmg', 'crit', 'saignement', 'brûlure'].includes(f.type)) {
+        v.sprite.setTintFill(f.type === 'crit' ? 0xffe08a : 0xffffff);
+        this.time.delayedCall(90, () => v.sprite.active && v.sprite.clearTint());
+        this.tweens.add({ targets: v.sprite, x: 8, duration: 50, yoyo: true, repeat: 2, onComplete: () => { v.sprite.x = 0; } });
+      }
     });
   }
   // ----- progression dans les salles -----
@@ -376,7 +395,7 @@ class Donjon extends Phaser.Scene {
   }
 }
 
-window.JEU = new Phaser.Game({
+new Phaser.Game({
   type: Phaser.AUTO, parent: 'jeu', width: W, height: H, backgroundColor: '#070303',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   scene: [Boot, Titre, Hameau, Donjon],

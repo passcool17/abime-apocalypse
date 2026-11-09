@@ -34,7 +34,7 @@ Jeu 100 % navigateur (Phaser 3 via CDN, aucun build), textes en français (Québ
   Option *Mort permanente* : un héros tombé est perdu pour de bon.
 - **Sauvegarde** : localStorage (or, héros, donjons vaincus, options).
 - **Art** : portraits recadrés depuis l'image de Pascal ; ennemis en formes vectorielles procédurales
-  rouge sombre/or (de vrais sprites viendront plus tard). Écran adapté souris et tactile (Scale FIT).
+  rouge sombre/or, remplacées en v2 par les sprites de Créa. Écran adapté souris et tactile (Scale FIT).
 
 ## Plan
 1. `js/data.js` : héros, compétences, ennemis, donjons.
@@ -50,8 +50,12 @@ Jeu 100 % navigateur (Phaser 3 via CDN, aucun build), textes en français (Québ
 ## État
 v1 jouable : 3 donjons, hameau, combat complet, sauvegarde locale.
 
+v2 : vrais sprites d'ennemis par Créa (sauterelle, démon mineur, cultiste, faux prophète ; boss Abaddon,
+Cavalier pâle, Bête à sept têtes) en WebP optimisés (`assets/ennemis/`), boss plus grands avec plus d'espace,
+éclair blanc + secousse quand une unité est touchée. Le Cavalier rouge garde son dessin provisoire.
+
 ## Prochaines idées
-- Vrais sprites d'ennemis et animations (Créa).
+- Sprite du Cavalier rouge et animations d'attaque (Créa).
 - Bibelots/reliques équipables, provisions et torche (lumière qui change le danger).
 - Déplacements de position (compétences qui avancent/reculent), plus de héros recrutables.
 - Musique et effets sonores.
