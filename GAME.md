@@ -2,60 +2,76 @@
 
 ## Concept
 Jeu de rôle tactique sombre, au tour par tour, inspiré de *Darkest Dungeon*. Quatre héros mythiques
-(Enoch, Elior, Christ, Thoth) descendent dans des donjons peuplés de démons et de créatures de
-l'Apocalypse. Entre deux expéditions, on revient au **hameau** pour soigner l'équipe avec l'or gagné.
+(Enoch, Elior, Christ, Thoth) explorent des donjons peuplés de démons et de créatures de l'Apocalypse :
+couloirs à défilement, salles, lumière qui faiblit, faim, curiosités, stress qui brise les esprits.
+Entre deux expéditions, le **hameau** soigne corps et âmes contre de l'or.
 Jeu 100 % navigateur (Phaser 3 via CDN, aucun build), textes en français (Québec).
 
-## Spécification v1
-- **Équipe en ligne (positions 1 à 4)** : Elior (1, tank), Thoth (2, malédictions), Christ (3, soin/soutien),
-  Enoch (4, mage de lumière). Chaque compétence indique depuis quelles positions on peut l'utiliser
-  et quelles positions elle peut viser.
-  Si un héros (ou un ennemi) n'a plus aucune compétence utilisable depuis sa position, il peut toutes les utiliser.
-- **Héros** : PV, stress 0–100. À 100 : **Crise** (précision −15, dégâts −25 %, peut perdre son tour).
-  Christ, tel que révélé dans l'Apocalypse, est **Inébranlable** : il ne subit pas de stress.
-  - Enoch, prophète antédiluvien : Rayon de lumière (brûlure), Révélation (marque tous les ennemis),
-    Parole des Veilleurs (étourdit), Vision prophétique (stress −, critique + pour l'équipe).
-  - Elior, paladin-prêtre : Frappe d'épée, Bouclier de foi (protège un allié), Jugement (étourdit),
-    Balayage sacré (positions 1–2 ennemies).
-  - Christ : Glaive de sa bouche (attaque à toute distance), Guérison, Paix (stress − pour tous),
-    Purification (retire saignement/brûlure/malédiction, stress −).
-  - Thoth, scribe des dieux : Plume tranchante (saignement), Malédiction du scribe (précision et dégâts −),
-    Pesée des cœurs (marque), Encre de guérison (soin léger).
-- **Combat** : initiative selon la vitesse (+ un peu de hasard). On clique une compétence, puis une cible.
-  Précision vs esquive, coups critiques (×1,5, stress), saignement, brûlure, étourdissement, marque (+30 % dégâts),
-  protection (le gardien encaisse les coups à la place de l'allié).
-- **Ennemis** : sauterelles de l'abîme, démons mineurs, cultistes de la Bête, cavalier rouge, faux prophète…
-  Boss : Abaddon (roi des sauterelles), le Cavalier pâle, la Bête à sept têtes.
-- **Donjons (3)** : une courte série de salles — couloirs avec rencontres aléatoires, trésors, autels,
-  puis le boss final. Chaque boss vaincu débloque le donjon suivant.
-- **Hameau** : Infirmerie (PV contre de l'or), Chapelle (stress contre de l'or), Forge sacrée (niveau +1 :
-  PV max et dégâts), choix du donjon, vue de l'équipe.
-- **Défaite / chute** : un héros tombé à 0 PV revient au hameau avec 1 PV (mode indulgent par défaut).
-  Option *Mort permanente* : un héros tombé est perdu pour de bon.
-- **Sauvegarde** : localStorage (or, héros, donjons vaincus, options).
-- **Art** : portraits recadrés depuis l'image de Pascal ; ennemis en formes vectorielles procédurales
-  rouge sombre/or, remplacées en v2 par les sprites de Créa. Écran adapté souris et tactile (Scale FIT).
+## Spécification (v3)
+### Exploration
+- **Carte procédurale** : salles sur une grille, reliées par des couloirs (arbre aléatoire + boucles, toujours connexe).
+  Panneau *Carte* (bouton ou touche M) : on touche une salle **voisine** (contour doré) pour s'y rendre.
+  Salles : entrée, combat, trésor, salle silencieuse (parfois une curiosité), antre du boss (la plus éloignée).
+- **Couloirs à défilement** : 3 cases par couloir. On marche à droite/gauche (A/D, flèches ou boutons ◀ ▶).
+  Cases : rencontre, curiosité, piège, éboulement (pelle ou mains nues), vide. On peut faire demi-tour.
+- **Repérage** : selon la lumière, entrer dans une salle révèle les salles voisines et le contenu des couloirs
+  (pièges repérés = plus faciles à désamorcer).
+- **Faim** : toutes les 12 cases explorées, 1 ration par héros ; sinon PV −15 % et stress +15.
+- **Quête** : Puits = explorer 90 % des salles ; Désert et Babylone = vaincre le boss. Quête accomplie =
+  récompense + donjon suivant débloqué. **Retraite** possible depuis une salle (stress +20).
+- **Lumière 0–100** : −6 par nouvelle case, torche +25. Voile sombre à l'écran selon la lumière.
+  Plus sombre = ennemis plus forts (dégâts, critiques), plus de stress, meilleur butin, embuscades plus probables.
+  Plus clair = meilleur repérage, ennemis plus souvent surpris.
+- **Surprise / embuscade** : héros surpris = rangs mélangés, ennemis jouent d'abord ; ennemis surpris = héros d'abord.
 
-## Plan
-1. `js/data.js` : héros, compétences, ennemis, donjons.
-2. `js/logic.js` : fonctions de combat pures (testables avec Node).
-3. `js/game.js` : scènes Phaser (Titre, Hameau, Donjon, Combat).
-4. `test/smoke.js` : simulation de combats en Node.
-5. Publication GitHub Pages.
+### Combat
+- Initiative selon la vitesse. On choisit une compétence (positions utilisables entre crochets) puis une cible.
+  Chaque héros a 5 compétences ; leur disponibilité dépend de sa **position actuelle**.
+- **Déplacements** : poussée (Jugement, Parole des Veilleurs, Lumière du monde), attraction (Chaîne de
+  hiéroglyphes), déplacements de soi (Charge sainte, Marche avec Dieu), action **Déplacer** (échange avec un
+  voisin). Les ennemis poussent/attirent aussi (Coup de corne, Charge, Croc tirant, Séduction) ;
+  Abaddon disperse l'équipe. Résistance au déplacement selon l'unité.
+- **Cadavres** : un ennemi vaincu laisse un cadavre qui garde sa place (on peut le détruire). Les boss n'en laissent pas.
+  Un héros tombé libère sa place : les autres avancent.
+- **Seuil de la mort** : à 0 PV un héros survit ; chaque nouveau coup = test de résistance au coup fatal
+  (67 % + bonus). Un soin l'en sort.
+- **Stress 0–200** : à 100, épreuve de volonté → **affliction** (~75 % : Égoïste, Paranoïaque, Masochiste,
+  Désespéré, Abusif — refuse d'obéir, agit seul, change de place, accable les autres, refuse les soins) ou
+  **vertu** (~25 % : Courageux, Puissant, Vigilant, Ferme comme le roc, Concentré — bonus et réconfort).
+  À 200 : crise cardiaque → seuil de la mort (mort s'il y était déjà).
+  Christ, tel que révélé dans l'Apocalypse, est **Inébranlable** : aucun stress (mais il peut être blessé, soigné, déplacé).
+- Saignement, brûlure, étourdissement, marque, malédiction, protection, maladies transmises par certains ennemis.
+
+### Provisions, camp, bizarreries
+- **Fournisseur** avant chaque expédition : rations, torches, bandages, clés, eau bénite, pelles
+  (quantités conseillées). Les objets servent aussi sur les curiosités (clé → coffre, eau bénite → autel/fontaine…).
+- **Camp** (Désert : 1, Babylone : 2) dans une salle nettoyée : repas (1 ration par héros), puis 12 points de
+  répit à dépenser en compétences de camp (soins, stress, buffs pour 2 combats). Embuscade nocturne 20 %
+  sauf *Garde de nuit*.
+- **Bizarreries** positives/négatives (max 3 de chaque) via curiosités et fin d'expédition ; **maladies**
+  via ennemis, pièges, curiosités.
+- **Hameau** : Infirmerie (PV), Abbaye (stress −50), Taverne (stress −100, risqué), Sanatorium (maladies,
+  bizarreries négatives), Forge (niveaux). Mort permanente optionnelle (sinon un héros tombé revient avec 1 PV).
+- **Sauvegarde** localStorage (v2 ; les anciennes sauvegardes v1 sont migrées : or, niveaux, PV, stress, donjons).
 
 ## Contrôles
-- Souris ou doigt : touche une compétence en bas, puis une cible (anneau doré). « Passer » saute le tour.
-- Dans le donjon : « Avancer » pour la salle suivante, « Retraite » pour rentrer au hameau (on garde l'or).
+- Souris ou doigt partout. Couloir : A/D ou ←/→, ou maintenir ◀ ▶. Carte : bouton *Carte* ou M.
+- Combat : compétence puis cible (anneau doré) ; *Déplacer* puis un allié voisin ; *Passer*.
+
+## Code
+`js/data.js` données · `js/logic.js` règles de combat/stress · `js/explore.js` carte, couloirs, lumière, faim,
+curiosités, camp · `js/ui.js` outils d'interface · `js/scenes/*` scènes Phaser · `test/smoke.js` simulation Node.
 
 ## État
-v1 jouable : 3 donjons, hameau, combat complet, sauvegarde locale.
-
-v2 : vrais sprites d'ennemis par Créa (sauterelle, démon mineur, cultiste, faux prophète ; boss Abaddon,
-Cavalier pâle, Bête à sept têtes) en WebP optimisés (`assets/ennemis/`), boss plus grands avec plus d'espace,
-éclair blanc + secousse quand une unité est touchée. Le Cavalier rouge garde son dessin provisoire.
+- v1 : combat, hameau, 3 donjons. v2 : sprites d'ennemis de Créa.
+- v3 (actuelle) : exploration complète à la Darkest Dungeon (carte, couloirs, lumière, faim, curiosités, pièges,
+  surprises), positions dynamiques, cadavres, seuil de la mort, afflictions/vertus, provisions, camp,
+  bizarreries, maladies, nouveaux bâtiments du hameau.
+- Limites connues : quitter la page en pleine expédition fait perdre le butin non rapporté (l'état des héros
+  est sauvegardé à chaque salle) ; les héros partent toujours dans l'ordre Elior-Thoth-Christ-Enoch (on
+  réorganise en combat) ; ciblage automatique des compétences de camp (allié le plus blessé/stressé).
 
 ## Prochaines idées
-- Sprite du Cavalier rouge et animations d'attaque (Créa).
-- Bibelots/reliques équipables, provisions et torche (lumière qui change le danger).
-- Déplacements de position (compétences qui avancent/reculent), plus de héros recrutables.
-- Musique et effets sonores.
+- Choisir l'ordre de l'équipe avant le départ, recruter d'autres héros.
+- Sprite du Cavalier rouge, animations d'attaque, sons et musique (Créa).
+- Bibelots/reliques équipables, quêtes variées (récupérer des objets, purifier des autels).
