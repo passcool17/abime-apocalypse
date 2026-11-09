@@ -118,7 +118,7 @@ class Expedition extends Phaser.Scene {
     for (let x = -600; x < len + 700; x += 300) { g.fillStyle(0x3a2a1a).fillRect(x - 4, 230, 8, 30); if (this.exp.light > 0) { g.fillStyle(0xff8020, 0.4 + this.exp.light / 250).fillCircle(x, 222, 9); g.fillStyle(0xffe080, 0.6).fillCircle(x, 224, 4); } }
     [0, len].forEach(x => { g.fillStyle(0x050303).fillRect(x - 70, 250, 140, 200); g.fillEllipse(x, 250, 140, 90); g.lineStyle(4, OR, 0.6).strokeRect(x - 70, 250, 140, 200); });
     cor.tiles.forEach((t, i) => {
-      const cx = (i + 1) * TW;
+      const cx = (i + 1) * TW + (t.type === 'eboulement' ? 80 : 170); // dessiné devant l'équipe quand elle atteint la case
       const show = (key, label, scale = 1.1) => { this.world.add(this.add.image(cx, 452, key).setOrigin(0.5, 1).setScale(scale)); this.world.add(txt(this, cx, 452 - 120 * scale - 6, label, 15, OR_T, { align: 'center' }).setOrigin(0.5, 1)); };
       if (t.done && t.type !== 'curio') return;
       if (t.type === 'curio' && !t.done) show('c_' + t.curio, DATA.CURIOS[t.curio].name);
@@ -215,10 +215,10 @@ class Expedition extends Phaser.Scene {
     this.mapC.removeAll(true).setVisible(on);
     if (!on) return;
     const exp = this.exp, map = exp.map, c = this.mapC;
-    c.add(this.add.rectangle(690, 98, 580, 456, 0x080404, 0.94).setOrigin(0).setStrokeStyle(2, OR));
-    c.add(txt(this, 705, 104, this.mode === 'salle' ? 'Carte — touche une salle voisine (contour doré)' : 'Carte', 16));
-    c.add(button(this, 1215, 104, 44, 34, 'X', () => this.showMap(false), 16));
-    const cell = Math.min(540 / map.cols, 360 / map.rows), ox = 700 + (560 - map.cols * cell) / 2 + cell / 2, oy = 145 + (370 - map.rows * cell) / 2 + cell / 2;
+    c.add(this.add.rectangle(690, 150, 580, 404, 0x080404, 0.94).setOrigin(0).setStrokeStyle(2, OR));
+    c.add(txt(this, 705, 158, this.mode === 'salle' ? 'Carte — touche une salle voisine (contour doré)' : 'Carte', 16));
+    c.add(button(this, 1215, 156, 44, 34, 'X', () => this.showMap(false), 16));
+    const cell = Math.min(540 / map.cols, 320 / map.rows), ox = 700 + (560 - map.cols * cell) / 2 + cell / 2, oy = 195 + (320 - map.rows * cell) / 2 + cell / 2;
     const P = r => [ox + r.x * cell, oy + r.y * cell];
     const known = r => r.visited || r.scouted || r.seen;
     const g = this.add.graphics(); c.add(g);

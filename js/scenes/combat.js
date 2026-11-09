@@ -57,7 +57,7 @@ const CombatMixin = {
     return v;
   },
   banner(text, good) {
-    const t = txt(this, W / 2, 300, text, 40, good ? '#ffe08a' : '#ff4040', { stroke: 6, align: 'center' }).setOrigin(0.5).setDepth(45).setScale(0.6);
+    const t = txt(this, W / 2, 300, text, 40, good ? '#ffe08a' : '#ff4040', { stroke: 6, align: 'center' }).setOrigin(0.5).setDepth(52).setScale(0.6);
     this.tweens.add({ targets: t, scale: 1, duration: 300, ease: 'Back.Out' });
     this.tweens.add({ targets: t, alpha: 0, delay: 1800, duration: 500, onComplete: () => t.destroy() });
   },
