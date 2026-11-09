@@ -3,7 +3,7 @@ class Boot extends Phaser.Scene {
   constructor() { super('boot'); }
   preload() {
     txt(this, W / 2, H / 2, 'Chargement…', 28).setOrigin(0.5);
-    DATA.HERO_ORDER.forEach(id => this.load.image('h_' + id, `assets/${id}.webp`));
+    DATA.HERO_ORDER.forEach(id => { this.load.image('h_' + id, `assets/${id}.webp`); this.load.image('b_' + id, `assets/heros/${id}.webp`); });
     this.load.image('fond', 'assets/fond-heros.webp');
     Object.keys(SPRITES).forEach(k => this.load.image('s_' + k, `assets/ennemis/${k}.webp`));
   }

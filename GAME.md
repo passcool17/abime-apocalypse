@@ -67,11 +67,13 @@ curiosités, camp · `js/ui.js` outils d'interface · `js/scenes/*` scènes Phas
 - v3 (actuelle) : exploration complète à la Darkest Dungeon (carte, couloirs, lumière, faim, curiosités, pièges,
   surprises), positions dynamiques, cadavres, seuil de la mort, afflictions/vertus, provisions, camp,
   bizarreries, maladies, nouveaux bâtiments du hameau.
+- v4 : héros en pied de Créa (Enoch, Elior, Christ, Thoth) debout sur la ligne du sol en combat, dans les couloirs et au camp
+  (portraits conservés au hameau et au menu), sprite du Cavalier rouge, respiration au repos, élan vers la cible à l'attaque.
 - Limites connues : quitter la page en pleine expédition fait perdre le butin non rapporté (l'état des héros
   est sauvegardé à chaque salle) ; les héros partent toujours dans l'ordre Elior-Thoth-Christ-Enoch (on
   réorganise en combat) ; ciblage automatique des compétences de camp (allié le plus blessé/stressé).
 
 ## Prochaines idées
 - Choisir l'ordre de l'équipe avant le départ, recruter d'autres héros.
-- Sprite du Cavalier rouge, animations d'attaque, sons et musique (Créa).
+- Animations d'attaque complètes, sons et musique (Créa).
 - Bibelots/reliques équipables, quêtes variées (récupérer des objets, purifier des autels).

@@ -3,11 +3,13 @@ const W = 1280, H = 720;
 const OR = 0xd4a640, OR_T = '#e8c46a', ROUGE = 0x8a1010, SOMBRE = 0x120808;
 const FONT = 'Georgia, "Times New Roman", serif';
 const SAVE_KEY = 'abime-apocalypse-v1';
-const HERO_X = p => 560 - (p - 1) * 130, BASE_Y = 440;
+const HERO_X = p => 560 - (p - 1) * 135, BASE_Y = 440;
+// Sprites en pied des héros (assets/heros/<id>.webp) : hauteur d'affichage. Elior (pose accroupie, cape large) un peu plus grand.
+const HERO_BODY = { enoch: 215, elior: 192, christ: 218, thoth: 215 };
 
 // Sprites de Créa (assets/ennemis/<clé>.webp) : boîte d'affichage max [largeur, hauteur]. Sans entrée = dessin provisoire.
 const SPRITES = { sauterelle: [135, 160], demon: [135, 170], cultiste: [135, 165], fauxProphete: [125, 190],
-  abaddon: [240, 240], cavalierPale: [240, 250], bete: [240, 245] };
+  cavalierRouge: [155, 180], abaddon: [240, 240], cavalierPale: [240, 250], bete: [240, 245] };
 
 let SAVE = loadSave();
 function loadSave() {

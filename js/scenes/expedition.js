@@ -276,7 +276,7 @@ class Expedition extends Phaser.Scene {
       }
       X.party(exp).forEach((h, i) => {
         const x = 30 + i * 310, s = h.steadfast ? 'Inébranlable' : `stress ${h.stress}`;
-        c.add(this.add.image(x + 40, 330, 'h_' + h.id).setOrigin(0.5, 1).setScale(0.3));
+        c.add(this.add.image(x + 40, 335, 'b_' + h.id).setOrigin(0.5, 1).setScale(100 / HERO_BODY.thoth * HERO_BODY[h.id] / this.textures.get('b_' + h.id).getSourceImage().height));
         c.add(txt(this, x + 85, 250, `${h.name}\nPV ${h.hp}/${h.maxHp} · ${s}`, 15, OR_T));
         DATA.HEROES[h.id].camp.forEach((sk, j) => {
           const used = exp.camp.used[h.id + sk.id];

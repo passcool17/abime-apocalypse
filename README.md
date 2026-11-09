@@ -15,4 +15,4 @@ abbaye, taverne, sanatorium, forge et fournisseur.
 - Fiche de conception, contrôles et état : [GAME.md](GAME.md).
 - Test de logique : `node test/smoke.js` (cartes connexes, combats simulés, couverture des mécaniques).
 
-Portraits des héros : art original de Pascal. Ennemis : sprites de Créa.
+Portraits des héros : art original de Pascal. Héros en pied et ennemis : sprites de Créa.

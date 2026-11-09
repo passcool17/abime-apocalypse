@@ -25,7 +25,7 @@ const CombatMixin = {
       v.stat.setText(STATUS(u));
       v.nameT.setText(u.name);
       if (u.side === 'hero') { if (u.deathsDoor) v.sprite.setTint(0xff7070); else v.sprite.clearTint(); }
-      if (u.corpse && !v.isCorpse) { v.isCorpse = true; v.sprite.setTint(0x302828).setAlpha(0.75); this.tweens.add({ targets: v.sprite, scaleY: v.sprite.scaleY * 0.45, duration: 300 }); v.hpBar.setFillStyle(0x606060); }
+      if (u.corpse && !v.isCorpse) { v.isCorpse = true; v.breath.stop(); v.sprite.setTint(0x302828).setAlpha(0.75); this.tweens.add({ targets: v.sprite, scaleY: v.sprite.scaleY * 0.45, duration: 300 }); v.hpBar.setFillStyle(0x606060); }
       if (u.flash) { this.banner(`${u.name} : ${u.flash.text}`, u.flash.good); delete u.flash; }
     });
   },
@@ -34,7 +34,7 @@ const CombatMixin = {
     const boss = u.side === 'enemy' && u.boss;
     const ring = this.add.ellipse(0, 0, boss ? 200 : 120, 30).setStrokeStyle(3, 0xffe08a).setVisible(false);
     let sprite;
-    if (u.side === 'hero') sprite = this.add.image(0, 0, 'h_' + u.id).setOrigin(0.5, 1).setScale(0.6);
+    if (u.side === 'hero') { sprite = this.add.image(0, 0, 'b_' + u.id).setOrigin(0.5, 1); sprite.setScale(HERO_BODY[u.id] / sprite.height); }
     else if (SPRITES[u.id]) { const [bw, bh] = SPRITES[u.id]; sprite = this.add.image(0, 0, 's_' + u.id).setOrigin(0.5, 1); sprite.setScale(Math.min(bw / sprite.width, bh / sprite.height)); }
     else sprite = this.add.image(0, 0, 'e_' + u.id).setOrigin(0.5, 1).setScale(boss ? 1.1 : 0.85);
     const top = -sprite.displayHeight;
@@ -53,6 +53,8 @@ const CombatMixin = {
     const zone = this.add.rectangle(0, top / 2, Math.max(120, sprite.displayWidth * 0.8), -top + 40, 0x000000, 0.001).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.clickUnit(u));
     v.add(zone);
     Object.assign(v, { ring, sprite, arrow, hpBar, hpT, stat, nameT });
+    // respiration au repos
+    v.breath = this.tweens.add({ targets: sprite, scaleY: sprite.scaleY * 1.02, duration: 1300 + Math.random() * 500, delay: Math.random() * 800, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
     this.views.set(u.uid, v);
     return v;
   },
@@ -152,7 +154,7 @@ const CombatMixin = {
     const r = LOGIC.useSkill(this.combat, u, c.skill, c.target);
     this.say(r.log); this.showFx(r.fx); this.refreshUnits();
     const v = this.views.get(u.uid);
-    if (v) this.tweens.add({ targets: v.sprite, x: u.side === 'hero' ? 20 : -20, duration: 120, yoyo: true, onComplete: () => { v.sprite.x = 0; } });
+    if (v) this.tweens.add({ targets: v.sprite, x: u.side === 'hero' ? 45 : -45, duration: 130, ease: 'Quad.Out', yoyo: true, onComplete: () => { v.sprite.x = 0; } });
     this.time.delayedCall(1000, () => this.nextTurn());
   },
   nextTurn() {
